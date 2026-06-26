@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+build/
+*.log
+
+# Local runtime/test files
+clock_request*.json
+status_request.json
+
+# Reference copy of Chessconnect used during development; do not redistribute here.
+chessconnect/
+
+# Abandoned experimental DLL bridge prototype.
+CMakeLists.txt
+build.ps1
+install_lucas.ps1
+src/
+
+# Local upstream snapshot, kept for development only.
+Eboard.py.upstream

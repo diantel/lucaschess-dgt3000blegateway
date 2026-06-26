@@ -1,0 +1,11 @@
+This release installs files/Eboard.py as a complete patched Lucas Chess Eboard.py template.
+
+The full file is bundled because Lucas Chess installations may ship only .pyc files or
+may have small source differences between releases, making line-based patching less
+reliable for end users.
+
+To generate a review diff on a machine with Git installed, run from the repository root:
+
+    git diff --no-index -- Eboard.py.upstream files/Eboard.py > files/Eboard.patch
+
+If you update files/Eboard.py, regenerate this patch before publishing a release.
