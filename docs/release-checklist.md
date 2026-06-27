@@ -8,14 +8,15 @@ Before publishing a release:
 4. Confirm engine clock is physical left.
 5. Confirm a human move is accepted only after pressing the right clock button.
 6. Confirm the clock stops after a game ends.
-7. Run syntax checks:
+7. Confirm the DGT3000 leaves `BT WAIT` soon after activating the Chessnut board.
+8. Run syntax checks:
 
 ```powershell
 python -m py_compile .\files\Eboard.py
 python -m py_compile .\files\dgt3000_ble_sidecar.py
 ```
 
-8. Confirm the repository does not include copied third-party sources or build outputs:
+9. Confirm the repository does not include copied third-party sources or build outputs:
 
 ```powershell
 git status --ignored

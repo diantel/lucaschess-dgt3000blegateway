@@ -30,6 +30,8 @@ class Eboard:
         self.dgt3000_last_button_sequence = 0
         self.dgt3000_human_side = None
         self.dgt3000_seen_human_move = False
+        if self.name == "Chessnut":
+            self.start_dgt3000_clock_sidecar()
 
     def is_working(self):
         return self.working_time is not None and 1.0 > (time.time() - self.working_time)
@@ -52,13 +54,14 @@ class Eboard:
                 self.write_position(position.fen())
 
     @staticmethod
-    def log(cad):
-        import traceback
-
+    def log(cad, with_stack=False):
         with open("dgt.log", "at", encoding="utf-8", errors="ignore") as q:
             q.write("\n[%s] %s\n" % (Util.today(), cad))
-            for line in traceback.format_stack():
-                q.write("    %s\n" % line.strip())
+            if with_stack:
+                import traceback
+
+                for line in traceback.format_stack():
+                    q.write("    %s\n" % line.strip())
 
     def registerStatusFunc(self, dato):
         # assert prln("registerStatusFunc", dato)
@@ -104,6 +107,7 @@ class Eboard:
             self.dgt3000_seen_human_move = True
             self.dgt3000_pending_move = ("whiteMove", pv)
             self.log("DGT3000 pending human move: %s" % pv)
+            self.poll_dgt3000_button()
             return 1
         return self.envia("whiteMove", self.dgt2pv(dato))
 
@@ -115,6 +119,7 @@ class Eboard:
             self.dgt3000_seen_human_move = True
             self.dgt3000_pending_move = ("blackMove", pv)
             self.log("DGT3000 pending human move: %s" % pv)
+            self.poll_dgt3000_button()
             return 1
         return self.envia("blackMove", pv)
 
@@ -135,6 +140,8 @@ class Eboard:
         self.dgt3000_human_side = None
         self.dgt3000_seen_human_move = False
         self.dgt3000_last_button_sequence = self.read_dgt3000_button_sequence()
+        if self.name == "Chessnut":
+            self.start_dgt3000_clock_sidecar()
 
         path_eboards = Util.opj(Code.folder_OS, "DigitalBoards")
         os.chdir(path_eboards)
@@ -348,8 +355,6 @@ class Eboard:
 
         os.chdir(Code.current_dir)
         self.driver = driver
-        if self.name == "Chessnut":
-            self.start_dgt3000_clock_sidecar()
         return True
 
     def deactivate(self):
@@ -471,7 +476,7 @@ class Eboard:
             self.start_dgt3000_clock_sidecar(request)
             return True
         except Exception as exc:
-            self.log("DGT3000 clock sync failed: %s" % exc)
+            self.log("DGT3000 clock sync failed: %s" % exc, True)
             return True
 
     def write_dgt3000_position_event(self, fen):
@@ -491,7 +496,7 @@ class Eboard:
                 json.dump(request, q)
             self.start_dgt3000_clock_sidecar()
         except Exception as exc:
-            self.log("DGT3000 position event failed: %s" % exc)
+            self.log("DGT3000 position event failed: %s" % exc, True)
 
     def dgt3000_clock_paths(self):
         local_app_data = os.environ.get("LOCALAPPDATA", Code.current_dir)
@@ -512,7 +517,7 @@ class Eboard:
             request_path, stdout_path, stderr_path, button_path = self.dgt3000_clock_paths()
             script = Util.opj(Code.folder_OS, "DigitalBoards", "dgt3000_ble_sidecar.py")
             if not os.path.isfile(script):
-                self.log("DGT3000 sidecar not found: %s" % script)
+                self.log("DGT3000 sidecar not found: %s" % script, True)
                 return False
 
             creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -524,7 +529,6 @@ class Eboard:
                 stderr=stderr_file,
                 creationflags=creationflags,
             )
-            time.sleep(0.5)
             rc = self.dgt3000_clock_process.poll()
             if request is None:
                 self.log("DGT3000 clock sidecar launched pid=%s rc=%s" % (self.dgt3000_clock_process.pid, rc))
@@ -534,7 +538,7 @@ class Eboard:
                 ))
             return True
         except Exception as exc:
-            self.log("DGT3000 sidecar launch failed: %s" % exc)
+            self.log("DGT3000 sidecar launch failed: %s" % exc, True)
             return False
 
     def read_dgt3000_button_sequence(self):
@@ -555,7 +559,7 @@ class Eboard:
                 self.dgt3000_last_button_sequence = sequence
                 self.accept_dgt3000_pending_move(sequence)
         except Exception as exc:
-            self.log("DGT3000 button poll failed: %s" % exc)
+            self.log("DGT3000 button poll failed: %s" % exc, True)
 
     def accept_dgt3000_pending_move(self, sequence):
         pending = self.dgt3000_pending_move
